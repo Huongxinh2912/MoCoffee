@@ -1,72 +1,48 @@
 <?php
     class ProductModel {
-        public function select_products_limit($limit) {
-           $sql = "SELECT * FROM products WHERE status = 1 ORDER BY product_id DESC LIMIT $limit";
+        public function insert_product($category_id, $name, $image, $quantity, $price, $sale_price, $details, $short_description) {
+           
+           $sql = "INSERT INTO products 
+           (category_id, name, image, quantity, price, sale_price, details, short_description)
+            VALUES (?,?,?,?,?,?,?,?)";
 
-           return pdo_query($sql);
+            pdo_execute($sql, $category_id, $name, $image, $quantity, $price, $sale_price, $details, $short_description);
         }
 
-        public function select_products_by_id($id) {
-            $sql = "SELECT * FROM products WHERE product_id = ?";
- 
-            return pdo_query_one($sql, $id);
-        }
-
-        public function select_products_order_by($limit, $order_by) {
-            $sql = "SELECT * FROM products WHERE status = 1 ORDER BY product_id $order_by LIMIT $limit";
- 
-            return pdo_query($sql);
-        }
-
-        public function select_cate_in_product($product_id) {
-            $sql = "SELECT category_id FROM products WHERE product_id = ?";
- 
-            return pdo_query_one($sql, $product_id);
-        }
-
-        public function select_products_similar($id) {
-            $sql = "SELECT * FROM products WHERE category_id = ? ORDER BY product_id LIMIT 4";
- 
-            return pdo_query($sql, $id);
-        }
-
-        public function search_products($query) {
-            $sql = "SELECT * FROM products WHERE name LIKE '%$query%' ";
- 
-            return pdo_query($sql);
-        }
-
-        public function search_products_by_price($from_price, $to_price) {
-            $sql = "SELECT * FROM products WHERE sale_price BETWEEN '$from_price' AND '$to_price' ";
- 
-            return pdo_query($sql);
-        }
-
-        public function get_min_max_prices() {
-            $sql = "SELECT MIN(sale_price) AS min_price, MAX(sale_price) AS max_price FROM products WHERE status = 1";
-        
-            return pdo_query_one($sql);
-        }
-
-        public function select_all_products() {
-            $sql = "SELECT * FROM products WHERE status = 1 ORDER BY product_id DESC";
+        public function select_products() {
+            $sql = "SELECT name FROM products WHERE status = 1";
 
             return pdo_query($sql);
         }
 
-        public function select_products_by_cate($category_id) {
-            $sql = "SELECT * FROM products WHERE category_id = ?";
- 
-            return pdo_query($sql, $category_id);
+        public function update_product_not_active($product_id) {
+            $sql = "UPDATE products SET status = 0 WHERE product_id = ?";
+
+            pdo_execute($sql, $product_id);
         }
 
-        function select_list_products($page, $perPage) {
+        public function update_product_active($product_id) {
+            $sql = "UPDATE products SET status = 1 WHERE product_id = ?";
+
+            pdo_execute($sql, $product_id);
+        }
+
+        function select_list_products($keyword, $id_danhmuc, $page, $perPage) {
             // Tính toán vị trí bắt đầu của kết quả trên trang hiện tại
             $start = ($page - 1) * $perPage;
         
             // Bắt đầu câu truy vấn SQL
             $sql = "SELECT * FROM products WHERE 1";
             
+            // Thêm điều kiện tìm kiếm theo keyword
+            if($keyword != '') {
+                $sql .= " AND name LIKE '%" . $keyword . "%'";
+            }
+        
+            // Thêm điều kiện tìm kiếm theo id_danhmuc
+            if($id_danhmuc > 0) {
+                $sql .= " AND category_id ='" . $id_danhmuc . "'";
+            }
         
             // Sắp xếp theo id giảm dần
             $sql .= " AND status = 1 ORDER BY product_id DESC";
@@ -77,13 +53,17 @@
             return pdo_query($sql);
         }
 
-        // Đếm sản phẩm
-        public function count_products() {
-            $sql = "SELECT product_id FROM products";
+        public function select_recycle_products() {
+            $sql = "SELECT * FROM products WHERE status = 0 ORDER BY product_id DESC";
 
             return pdo_query($sql);
         }
-        
+
+        public function select_product_by_id($product_id) {
+            $sql = "SELECT * FROM products WHERE product_id =?";
+
+            return pdo_query_one($sql, $product_id);
+        }
 
         public function discount_percentage($price, $sale_price) {
             $discount_percentage = ($price - $sale_price) / $price * 100;
@@ -97,12 +77,31 @@
             return $format;
         }
 
-        public function update_views($product_id ) {
-            $sql = "UPDATE products SET views = views + 1 WHERE product_id  = ?";
-            pdo_execute($sql, $product_id );
-            
+        // Delete
+        public function delete_product($product_id) {
+            $sql = "DELETE FROM products WHERE product_id = ?";
+            pdo_execute($sql, $product_id);
         }
 
+        public function update_product($category_id, $name, $image, $quantity, $price, $sale_price, $details, $short_description, $product_id) {
+            $sql = "UPDATE products SET 
+            category_id = '".$category_id."', 
+            name = '".$name."',";
+    
+            if ($image != '') {
+                $sql .= " image = '".$image."',";
+            }
+
+            $sql .= " quantity = '".$quantity."', 
+                    price = '".$price."', 
+                    sale_price = '".$sale_price."', 
+                    details = '".$details."', 
+                    short_description = '".$short_description."' 
+                    WHERE product_id = ".$product_id;
+            
+            
+            pdo_execute($sql);
+        }
     }
 
     $ProductModel = new ProductModel();

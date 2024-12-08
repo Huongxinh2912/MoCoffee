@@ -1,140 +1,138 @@
-<?php
-    $username_tmp = '';
-    $password_tmp = '';
-    $error ='';
+<!DOCTYPE html>
+<html lang="en">
 
-    if(isset($_SESSION['user_register'])) {
-        $username_tmp = $_SESSION['user_register']['username'];
-        $password_tmp = $_SESSION['user_register']['password'];
-    }
+<head>
+    <meta charset="utf-8">
+    <title>Fahasa Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
 
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["signin"])) {
-        $username = trim($_POST["username_login"]);
-        $password = trim($_POST["password_login"]);
-        
-        if (!empty($username) && !empty($password)) {
-            $user = $CustomerModel->get_user_by_username($username);
-            
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="public_admin/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="public_admin/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="public_admin/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="public_admin/css/style.css" rel="stylesheet">
+</head>
+
+<?php
+    ob_start();
+    session_start();
+    require_once "models_admin/pdo_library.php";
+    require_once "models_admin/BaseModel.php";
+    require_once "models_admin/CustomerModel.php";
+
+    $error ='';
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
+        $username = trim($_POST["username"]);
+        $password = trim($_POST["password"]);
+
+        if (!empty($username) && !empty($password)) {
+            $user = $CustomerModel->get_user_admin($username);
+
             if ($user && isset($user[0]['password'])) { 
 
                 if($user[0]['active'] != 1) {
                     $error = 'Tài khoản đã bị khóa';
                 }else {
                     if (password_verify($password, $user[0]['password'])) {
-                        // Lưu thông tin đăng nhập vào Sessison
-                        $_SESSION['user']['id'] = $user[0]['user_id'];
-                        $_SESSION['user']['username'] = $user[0]['username'];
-                        $_SESSION['user']['full_name'] = $user[0]['full_name'];
-                        $_SESSION['user']['image'] = $user[0]['image'];
-                        $_SESSION['user']['email'] = $user[0]['email'];
-                        $_SESSION['user']['phone'] = $user[0]['phone'];
-                        $_SESSION['user']['address'] = $user[0]['address'];
-                        $_SESSION['user']['password'] = $user[0]['password'];
+                        //Lưu thông tin đăng nhập vào Sessison
+                        $_SESSION['user_admin']['id'] = $user[0]['user_id'];
+                        $_SESSION['user_admin']['username'] = $user[0]['username'];
+                        $_SESSION['user_admin']['full_name'] = $user[0]['full_name'];
+                        $_SESSION['user_admin']['image'] = $user[0]['image'];
+                        $_SESSION['user_admin']['email'] = $user[0]['email'];
+                        $_SESSION['user_admin']['phone'] = $user[0]['phone'];
+                        $_SESSION['user_admin']['address'] = $user[0]['address'];
                         
-                        // Xóa session lưu trữ tạm
-                        if(isset($_SESSION['user_register'])) unset($_SESSION['user_register']);
 
                         header("Location: index.php");
                     } else {
                         $error = 'Sai tên tài khoản hoặc mật khẩu';
                     }
                 }
-    
-                
-            } else {
-                $error = 'Sai tên tài khoản hoặc mật khẩu';
-                $username_tmp = $username;
-                $password_tmp = $password;
-            }
-        } else {
-            $error = 'Vui lòng nhập đầy đủ thông tin';
-        }   
-
+            }        
+        }
     }
 
     $html_alert = $BaseModel->alert_error_success($error, '');
-
+    
 ?>
-<style>
 
-label {
-    margin-top: 5px;
-}
-</style>
-<div class="container my-5">
-    <div class="row d-flex justify-content-center align-items-center m-0">
-        <div class="login_oueter">
+<body>
+    <div class="container-xxl position-relative bg-white d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
 
-            <form action="" method="post" id="login" autocomplete="off" class="p-3">
-                <h4 class="my-3 text-center">ĐĂNG NHẬP</h4>
-                <div class="form-row">
 
-                    <div class="col-12">
-                        <div class="input-group my-0">
-                            <span class="w-100" style="margin-bottom: -10px;">
-                                <?=$html_alert?>
-                            </span>
-                            <label class="w-100 text-dark" for="username">Tên đăng nhập</label>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="basic-addon1"><i class="fas fa-user"></i></span>
-                            </div>
-                            <input name="username_login" type="text" value="<?=$username_tmp?>" class="input form-control" id="username" placeholder="Tên đăng nhập" required="true" />
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="input-group mb-3 mt-0">
-                            <label class="w-100 text-dark" for="password">Mật khẩu</label>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="basic-addon1"><i class="fas fa-lock"></i></span>
-                            </div>
-                            <input name="password_login" type="password" value="<?=$password_tmp?>" class="input form-control" id="password" placeholder="Mật khẩu" required="true" />
-                            <div class="input-group-append">
-                                <span class="input-group-text" onclick="password_show_hide();">
-                                    <i class="fas fa-eye" id="show_eye"></i>
-                                    <i class="fas fa-eye-slash d-none" id="hide_eye"></i>
-                                </span>
-                            </div>
-                            
-
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <button class="btn btn-primary w-100" type="submit" name="signin">Đăng nhập</button>
-                    </div>
-                    <div class="col-12 pt-3 text-center">
-                        <p class="mb-0"><a href="quen-mat-khau">Quên mật khẩu?</a></p>
-                    </div>
+        <!-- Sign In Start -->
+        <div class="container-fluid">
+            <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
+                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
                     
 
-
+                    <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">      
+                                          
+                        <form action="" method="post">
+                            <h3 class="text-center mb-4">Đăng nhập Admin</h3>
+                            <p class="text-danger">Vui lòng đăng nhập để vào trang quản trị</p>
+                            <?=$html_alert?>
+                            <div class="form-floating mb-3">
+                                <input name="username" type="text" class="form-control" id="floatingInput" placeholder="Tên đăng nhập" required>
+                                <label for="floatingInput">Tên đăng nhập</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                <input name="password" type="password" class="form-control" id="floatingPassword" placeholder="Mật khẩu" required>
+                                <label for="floatingPassword">Mật khẩu</label></label>
+                            </div>
+                            
+                            <button type="submit" name="login" class="btn btn-primary py-3 w-100 mb-4">Đăng nhập</button>
+                        </form>
+                    </div>
                 </div>
-                <div class="col-12 line"></div>
-                <div class="col-12 text-center">
-                    <a href="index.php?url=dang-ky" class="btn btn-success w-50">Tạo tài khoản</a>
-                </div>
-            </form>
+            </div>
         </div>
+        <!-- Sign In End -->
     </div>
 
-</div>
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="public_admin/lib/chart/chart.min.js"></script>
+    <script src="public_admin/lib/easing/easing.min.js"></script>
+    <script src="public_admin/lib/waypoints/waypoints.min.js"></script>
+    <script src="public_admin/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="public_admin/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="public_admin/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="public_admin/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-<script>
-    function password_show_hide() {
-        var x = document.getElementById("password");
-        var show_eye = document.getElementById("show_eye");
-        var hide_eye = document.getElementById("hide_eye");
-        hide_eye.classList.remove("d-none");
-        if (x.type === "password") {
-            x.type = "text";
-            show_eye.style.display = "none";
-            hide_eye.style.display = "block";
-        } else {
-            x.type = "password";
-            show_eye.style.display = "block";
-            hide_eye.style.display = "none";
-        }
-    }
-</script>
+    <!-- Template Javascript -->
+    <script src="public_admin/js/main.js"></script>
+</body>
+
+</html>
+
+<?php
+    ob_end_flush();
+?>

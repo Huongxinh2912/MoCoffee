@@ -1,6 +1,6 @@
 <?php
 // Thư viện PDO
-require_once "./config/config.php";
+require_once "../config/config.php";
 
 
 /**
@@ -31,22 +31,20 @@ function pdo_execute($sql){
  * @return array mảng các bản ghi
  * @throws PDOException lỗi thực thi câu lệnh
  */
-function pdo_query($sql){
-    $sql_args = array_slice(func_get_args(), 1);
-    try{
+function pdo_query($sql, ...$params) {
+    try {
         $conn = pdo_get_connection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute($sql_args);
-        $rows = $stmt->fetchAll();
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows;
-    }
-    catch(PDOException $e){
+    } catch (PDOException $e) {
         throw $e;
-    }
-    finally{
+    } finally {
         unset($conn);
     }
 }
+
 /**
  * Thực thi câu lệnh sql truy vấn một bản ghi
  * @param string $sql câu lệnh sql
@@ -70,13 +68,13 @@ function pdo_query_one($sql){
         unset($conn);
     }
 }
-/**
- * Thực thi câu lệnh sql truy vấn một giá trị
- * @param string $sql câu lệnh sql
- * @param array $args mảng giá trị cung cấp cho các tham số của $sql
- * @return giá trị
- * @throws PDOException lỗi thực thi câu lệnh
- */
+// /**
+//  * Thực thi câu lệnh sql truy vấn một giá trị
+//  * @param string $sql câu lệnh sql
+//  * @param array $args mảng giá trị cung cấp cho các tham số của $sql
+//  * @return giá trị
+//  * @throws PDOException lỗi thực thi câu lệnh
+//  */
 function pdo_query_value($sql){
     $sql_args = array_slice(func_get_args(), 1);
     try{
