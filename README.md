@@ -1,2 +1,2 @@
-# DUAN1_BOOKSTORE
-Nhóm 2 (Khoa, Hi, Hảo, Kiệt)
+# DUAN1_Coffee Mơ
+Nhóm 8 (Hương,Thương,Quảng)
